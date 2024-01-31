@@ -1,0 +1,27 @@
+import csv
+import mysql.connector
+
+cnx = mysql.connector.connect(host='127.0.0.1', user='root', password='ruipinto2023', database='hotel')
+cursor = cnx.cursor()
+
+def povoar_tabela(nome_tabela, nome_arquivo_csv):
+
+    with open(nome_arquivo_csv, 'r') as file:
+        csv_data = csv.reader(file)
+        next(csv_data)  
+
+        for row in csv_data:
+            values = [f"'{value}'" if isinstance(value, str) else str(value) for value in row]
+
+            query = f"INSERT INTO {nome_tabela} VALUES ({', '.join(values)})"
+            cursor.execute(query)
+
+    print(f'Dados inseridos na tabela {nome_tabela} com sucesso!')
+
+povoar_tabela('Cliente', 'C:\\Users\\rfern\\OneDrive\\Ambiente de Trabalho\\Uni projects\\BD\\clientes.csv')
+
+cnx.commit()
+cursor.close()
+cnx.close()
+
+

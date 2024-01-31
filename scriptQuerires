@@ -1,0 +1,231 @@
+
+-- ------------------------------------------------------
+-- ------------------------------------------------------
+-- Universidade do Minho
+-- Licenciatura em Engenharia Informática
+-- Unidade Curricular de Bases de Dados
+-- 
+-- Caso de Estudo: Hotel do Senhor
+-- Criação do Esquema Físico
+-- Abri/2023
+-- ------------------------------------------------------
+-- ------------------------------------------------------
+
+--
+-- Esquema: "Hotel"
+USE `Hotel` ;
+
+--
+-- Permissão para fazer operações de remoção de dados.
+SET SQL_SAFE_UPDATES = 0;
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+
+Delimiter //
+Create procedure quartos_reservados(data_inicio Date,data_final Date) 
+Begin
+	Select Quarto.idQuarto, Quarto.televisao, Quarto.varanda, Quarto.cofre
+    FROM Reserva
+    JOIN Reserva_has_Quarto 
+    ON Reserva.idReserva = Reserva_has_Quarto.FK_idReserva
+    JOIN Quarto 
+    ON Reserva_has_Quarto.FK_idQuarto = Quarto.idQuarto
+    WHERE Reserva.checkIn >= data_inicio AND Reserva.checkOut <= data_final;
+End //
+
+Delimiter ;
+
+-- call quartos_reservados('2023-06-04','2023-06-20');
+
+Delimiter //
+Create procedure agencias_utilizadas()
+BEGIN
+    SELECT agencia, COUNT(*) AS total_utilizacoes
+    FROM Reserva
+    GROUP BY agencia;
+End //
+
+Delimiter ;
+
+-- call agencias_utilizadas();
+
+-- Permissão para fazer operações de remoção de dados.
+SET SQL_SAFE_UPDATES = 0;
+
+DELIMITER //
+CREATE PROCEDURE obterInformacoesReserva(numeroReserva INT)
+BEGIN
+    SELECT *
+    FROM reserva
+    WHERE idReserva = numeroReserva;
+END //
+
+DELIMITER ;
+-- call obterInformacoesReserva(4);
+
+-- Permissão para fazer operações de remoção de dados.
+SET SQL_SAFE_UPDATES = 0;
+
+DELIMITER //
+CREATE PROCEDURE obterInformacoesFuncionario(numeroFuncionario INT)
+BEGIN
+    SELECT *
+    FROM Funcionario
+    WHERE idFuncionario = numeroFuncionario;
+END //
+
+DELIMITER ;
+-- call obterInformacoesFuncionario(4);
+
+DELIMITER //
+CREATE FUNCTION calcularFaturamentoCadeiaHoteleira(dataInicio DATE, dataFim DATE)
+RETURNS DOUBLE
+BEGIN
+    DECLARE faturamento DOUBLE;
+
+    SELECT SUM(preco) INTO faturamento
+    FROM reserva
+    WHERE dataReserva BETWEEN dataInicio AND dataFim;
+
+    RETURN faturamento;
+END //
+DELIMITER ;
+
+-- SET @faturamento := calcularFaturamentoCadeiaHoteleira('2023-06-01','2023-12-25');
+-- SELECT @faturamento;  
+
+DELIMITER //
+CREATE FUNCTION calcularMediaEstacionamentosPorReserva() RETURNS DECIMAL(10,2)
+BEGIN
+    DECLARE mediaEstacionamentos DECIMAL(10,2);
+
+    SELECT AVG(nrLugaresEstacionamento) INTO mediaEstacionamentos
+    FROM reserva;
+
+    RETURN mediaEstacionamentos;
+END //
+
+DELIMITER ;
+-- Set @estacionamentos = calcularMediaEstacionamentosPorReserva();
+-- select @estacionamentos;
+
+DELIMITER //
+CREATE PROCEDURE obterMesesConcorridosMenosConcorridos()
+BEGIN
+    DECLARE mesMaisConcorrido VARCHAR(20);
+    DECLARE mesMenosConcorrido VARCHAR(20);
+
+    SELECT mes INTO mesMaisConcorrido
+    FROM (
+        SELECT MONTH(checkIn) AS mes, COUNT(*) AS total
+        FROM reserva
+        GROUP BY mes
+        ORDER BY total DESC
+        LIMIT 1
+    ) AS maisConcorrido;
+
+    SELECT mes INTO mesMenosConcorrido
+    FROM (
+        SELECT MONTH(checkIn) AS mes, COUNT(*) AS total
+        FROM reserva
+        GROUP BY mes
+        ORDER BY total ASC
+        LIMIT 1
+    ) AS menosConcorrido;
+
+    SELECT mesMaisConcorrido, mesMenosConcorrido;
+END //
+
+DELIMITER ;
+-- call obterMesesConcorridosMenosConcorridos();
+
+
+-- obter duração de estadia de um determinado cliente 
+DELIMITER //
+CREATE PROCEDURE obterDuracaoEstadiaCliente(IN idCliente INT)
+BEGIN
+    SELECT reserva.idReserva, DATEDIFF(reserva.checkOut, reserva.checkIn) AS duracao
+    FROM reserva
+    WHERE reserva.FK_idCliente = idCliente;
+END//
+
+DELIMITER ;
+-- call obterDuracaoEstadiaCliente(1);
+
+DELIMITER //
+CREATE FUNCTION calcularMediaPessoasPorReserva()
+RETURNS DECIMAL(10,2)
+BEGIN
+    DECLARE mediaPessoas DECIMAL(10,2);
+
+    SELECT AVG(nrCriancas + nrBebes + nrAdultos) INTO mediaPessoas
+    FROM Reserva;
+
+    RETURN mediaPessoas;
+END //
+
+DELIMITER ;
+-- Set @mediaPessoas = calcularMediaPessoasPorReserva();
+-- Select @mediaPessoas;
+
+DELIMITER //
+CREATE FUNCTION calcularMediaSalariosFuncionarios()
+RETURNS DECIMAL(10,2)
+BEGIN
+    DECLARE mediaSalarios DECIMAL(10,2);
+
+    SELECT AVG(salario) INTO mediaSalarios
+    FROM Funcionario;
+
+    RETURN mediaSalarios;
+END //
+DELIMITER ;
+-- Set @mediaSalario = calcularMediaSalariosFuncionarios();
+-- Select @mediaSalario;
+
+DELIMITER //
+CREATE FUNCTION calcularMediaPrecosReservas()
+RETURNS DECIMAL(10,2)
+BEGIN
+    DECLARE mediaPrecos DECIMAL(10,2);
+
+    SELECT AVG(preco) INTO mediaPrecos
+    FROM reserva;
+
+    RETURN mediaPrecos;
+END //
+DELIMITER ;
+-- Set @mediaPreco = calcularMediaPrecosReservas();
+-- Select @mediaPreco;
+
+DELIMITER //
+CREATE FUNCTION calcularMediaIdadesFuncionarios()
+RETURNS DECIMAL(10,2)
+BEGIN
+    DECLARE media DECIMAL(10,2);
+    
+    SELECT AVG(idade) INTO media
+    FROM Funcionario;
+    
+    RETURN media;
+END //
+DELIMITER ;
+-- Set @mediaIdades = calcularMediaIdadesFuncionarios();
+-- Select @mediaIdades;
+
+-- Obter media de duração de uma estadia no Hotel
+DELIMITER //
+CREATE FUNCTION obterMediaEstadiaHotel(nomeHotel VARCHAR(45))
+RETURNS INT
+BEGIN
+    DECLARE mediaEstadia INT;
+
+    SELECT AVG(DATEDIFF(checkOut, checkIn)) INTO mediaEstadia
+    FROM reserva
+    WHERE FK_nomeHotel = nomeHotel;
+
+    RETURN mediaEstadia;
+END //
+DELIMITER ;
+-- Set @mediaEstadia = obterMediaEstadiaHotel('Hotel Encanto Real');
+-- Select @mediaEstadia;

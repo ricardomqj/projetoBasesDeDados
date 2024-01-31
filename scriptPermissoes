@@ -1,0 +1,90 @@
+use hotel;
+
+-- rececionistas
+CREATE USER 'José Pinto'@'localhost'
+	IDENTIFIED BY 'passJosePinto';
+    
+CREATE USER 'Filipa Marrão'@'localhost'
+	IDENTIFIED BY 'passFilipaMarrao';
+    
+-- chefes departamento    
+CREATE USER 'Joaquim Paiva'@'localhost'
+	IDENTIFIED BY 'passJoaquimPaiva';
+
+CREATE USER 'Pedro Vaz'@'localhost'
+	IDENTIFIED BY 'passPedroVaz';
+    
+-- administradores
+CREATE USER 'Rui Pinto'@'12.0.1.2'
+	IDENTIFIED BY 'passRuiPinto';
+
+CREATE USER 'António Silva'@'17.0.5.4'
+	IDENTIFIED BY 'passAntonioSilva';
+    
+-- rececionistas podem consultar e adicionar registos de reservas ao sistema
+grant insert (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO 'José Pinto'@'localhost';
+
+grant insert (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO 'Filipa Marrão'@'localhost';
+
+grant select (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO 'José Pinto'@'localhost';
+
+grant select (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO 'Filipa Marrão'@'localhost';
+    
+    
+
+-- chefes de departamento podem alterar informações da reserva
+grant update (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO  'Joaquim Paiva'@'localhost';
+    
+grant update (idReserva,cancelamento,agencia,nrLugaresEstacionamento,checkIn,checkOut,dataReserva,metodoPagamento,preco,nrAdultos,nrCriancas,nrBebes,FK_nomeHotel,FK_idCliente,FK_idRegime)
+	ON hotel.reserva
+	TO  'Pedro Vaz'@'localhost';
+
+
+-- rececionistas conseguem ter acesso às informações de um cliente
+grant select (idCliente,email,nome,nrCartaoCredito,idade,nif,FK_idMorada)
+	on hotel.cliente
+	to 'José Pinto'@'localhost';
+    
+grant select (idCliente,email,nome,nrCartaoCredito,idade,nif,FK_idMorada)
+	on hotel.cliente
+	to 'Filipa Marrão'@'localhost';
+    
+
+-- rececionistas conseguem registar um novo cliente
+grant insert (idCliente,email,nome,nrCartaoCredito,idade,nif,FK_idMorada)
+	on hotel.cliente
+	to 'José Pinto'@'localhost';
+    
+grant insert (idCliente,email,nome,nrCartaoCredito,idade,nif,FK_idMorada)
+	on hotel.cliente
+	to 'Filipa Marrão'@'localhost';
+    
+
+-- administradores têm todas as permissões
+grant all privileges
+	on hotel.*
+	to 'Rui Pinto'@'12.0.1.2';
+    
+grant all privileges
+	on hotel.*
+	to 'António Silva'@'17.0.5.4';
+
+
+
+
+
+
+
+
+
+
